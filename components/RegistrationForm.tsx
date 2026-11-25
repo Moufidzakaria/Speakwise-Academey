@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { packageOptions, site, waLink } from "@/lib/site";
 
 type Errors = Partial<Record<"name" | "email" | "phone" | "consent", string>>;
-type Ready = { wa: string; mail: string };
+type Ready = { wa: string };
 
 const field = "form-field";
 
@@ -12,6 +12,8 @@ export default function RegistrationForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [ready, setReady] = useState<Ready | null>(null);
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState("");
 
   // Preselect a package from /contact?package=intro|complete
   useEffect(() => {
@@ -20,7 +22,7 @@ export default function RegistrationForm() {
     if (sel instanceof HTMLSelectElement && packageOptions.some((o) => o.id === p)) sel.value = p as string;
   }, []);
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const d = new FormData(e.currentTarget);
     const v = (k: string) => String(d.get(k) ?? "").trim();
@@ -31,7 +33,9 @@ export default function RegistrationForm() {
     if (!/^\+?[0-9 ]{8,16}$/.test(v("phone"))) next.phone = "Enter a valid phone number (digits, optional +).";
     if (!d.get("consent")) next.consent = "Accept to continue.";
     setErrors(next);
-    if (Object.keys(next).length) { setReady(null); return; }
+    setReady(null);
+    setSendError("");
+    if (Object.keys(next).length) return;
 
     const pkg = packageOptions.find((o) => o.id === v("package"))?.label ?? v("package");
     const message = [
@@ -45,10 +49,38 @@ export default function RegistrationForm() {
       `Message: ${v("message") || "-"}`,
     ].join("\n");
 
-    setReady({
-      wa: waLink(message),
-      mail: `mailto:${site.email}?subject=${encodeURIComponent("Registration inquiry")}&body=${encodeURIComponent(message)}`,
-    });
+    setIsSending(true);
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: v("name"),
+          email: v("email"),
+          phone: v("phone"),
+          package: v("package"),
+          format: v("format"),
+          age: v("age"),
+          message: v("message"),
+          consent: Boolean(d.get("consent")),
+        }),
+      });
+
+      if (!response.ok) {
+        const result: unknown = await response.json().catch(() => null);
+        const errorMessage =
+          result && typeof result === "object" && "error" in result && typeof result.error === "string"
+            ? result.error
+            : "The registration email could not be sent. Please try again.";
+        throw new Error(errorMessage);
+      }
+
+      setReady({ wa: waLink(message) });
+    } catch (error) {
+      setSendError(error instanceof Error ? error.message : "The registration email could not be sent. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   }
 
   const Err = ({ id }: { id: keyof Errors }) =>
@@ -104,22 +136,27 @@ export default function RegistrationForm() {
           <Err id="consent" />
         </div>
 
-        <button type="submit" className="button button-accent w-full sm:w-auto">
-          Prepare my registration
+        <button type="submit" disabled={isSending} className="button button-accent w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-60">
+          {isSending ? "Sending request..." : "Send registration request"}
         </button>
       </form>
 
       <div role="status" aria-live="polite" className="mt-6">
-        {Object.keys(errors).length > 0 && !ready && (
+        {Object.keys(errors).length > 0 && !ready && !sendError && (
           <p className="rounded-xl bg-red-50 px-4 py-3 text-red-800">Please correct the highlighted fields.</p>
+        )}
+        {sendError && (
+          <div className="rounded-xl bg-red-50 px-4 py-3 text-red-800">
+            <p>{sendError}</p>
+            <p className="mt-2">You can also email us directly: {site.emails.map((email, index) => <span key={email}>{index > 0 ? " or " : ""}<a className="underline" href={`mailto:${email}`}>{email}</a></span>)}.</p>
+          </div>
         )}
         {ready && (
           <div className="rounded-2xl border border-emerald/20 bg-emerald/5 p-5">
-            <p className="font-semibold">Your request is ready, but it has not been sent yet.</p>
-            <p className="mt-1 text-navy/75">Send it by WhatsApp or email. This is not a confirmed reservation: a place is confirmed only after we contact you.</p>
+            <p className="font-semibold">Your request was sent to both contact email addresses.</p>
+            <p className="mt-1 text-navy/75">This is not a confirmed reservation: a place is confirmed only after we contact you.</p>
             <div className="mt-4 flex flex-wrap gap-3">
               <a href={ready.wa} target="_blank" rel="noopener noreferrer" className="button min-h-11 bg-emerald text-white hover:bg-emerald/90">Send via WhatsApp</a>
-              <a href={ready.mail} className="button button-outline min-h-11">Send by email</a>
             </div>
           </div>
         )}

@@ -44,7 +44,7 @@ const jsonLd = {
   "@type": "EducationalOrganization",
   name: site.name,
   url: site.url,
-  email: site.email,
+  email: site.emails,
   telephone: site.phone,
   address: { "@type": "PostalAddress", addressLocality: "Fès", addressCountry: "MA" },
 };

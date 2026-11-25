@@ -1,7 +1,7 @@
 export const site = {
   name: "English Teaching Training",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  email: "ayoubbouzar78@gmail.com",
+  emails: ["ayoubbouzar78@gmail.com", "yahyaqanqon@gmail.com"],
   phone: "+212 713 597 320",
   phoneHref: "tel:+212713597320",
   whatsapp: "212713597320",

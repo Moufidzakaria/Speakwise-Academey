@@ -22,7 +22,7 @@ export default function ContactPage() {
           <span className="mb-5 grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-brand"><MessageCircle size={22} aria-hidden="true" /></span>
           <h2 className="text-2xl font-bold">Get in touch</h2>
           <ul className="mt-6 space-y-5">
-            <li className="flex gap-3"><Mail className="mt-1 shrink-0 text-brand" size={19} aria-hidden="true" /><a href={`mailto:${site.email}`} className="break-all text-slate-600 transition hover:text-brand">{site.email}</a></li>
+            <li className="flex gap-3"><Mail className="mt-1 shrink-0 text-brand" size={19} aria-hidden="true" /><div className="space-y-1">{site.emails.map((email) => <a key={email} href={`mailto:${email}`} className="block break-all text-slate-600 transition hover:text-brand">{email}</a>)}</div></li>
             <li className="flex gap-3"><Phone className="mt-1 shrink-0 text-brand" size={19} aria-hidden="true" /><a href={site.phoneHref} className="text-slate-600 transition hover:text-brand">{site.phone}</a></li>
             <li className="flex gap-3"><MapPin className="mt-1 shrink-0 text-brand" size={19} aria-hidden="true" /><span className="text-slate-600">{site.city}</span></li>
           </ul>

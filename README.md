@@ -10,7 +10,7 @@ npm run dev        # http://localhost:3000
 
 ## Production build
 ```bash
-cp .env.example .env.local   # set NEXT_PUBLIC_SITE_URL to your real domain
+cp .env.example .env.local   # set the site URL and Resend email settings
 npm run build
 npm run start
 ```
@@ -18,19 +18,20 @@ npm run start
 ## Deploy (Vercel, simplest)
 1. Push the project to GitHub.
 2. On vercel.com: Add New → Project → import the repository.
-3. Add the environment variable `NEXT_PUBLIC_SITE_URL` (your domain, with https://).
-4. Deploy. HTTPS is automatic. Netlify works the same way.
+3. In Resend, verify a domain and create an API key.
+4. In Vercel → Project → Settings → Environment Variables, set `NEXT_PUBLIC_SITE_URL`, `RESEND_API_KEY`, and `RESEND_FROM_EMAIL`. Use a sender address on the domain verified with Resend.
+5. Redeploy. Registration requests will be emailed to both contact addresses. Keep `RESEND_API_KEY` private; never add it to client-side code.
 
 ## Where to edit
 - `lib/site.ts`: contact details, prices, FAQ, package options, WhatsApp message.
 - `app/*/page.tsx`: page content and SEO metadata.
-- `components/RegistrationForm.tsx`: form validation and message building.
+- `components/RegistrationForm.tsx`: form validation and submission status.
+- `app/api/register/route.ts`: server-side validation and email delivery through Resend.
 - `tailwind.config.ts`: brand colors.
 
 ## Registration
-No backend: the form validates the data, then prepares a WhatsApp message and an email.
-Nothing is stored. Nothing says a seat is confirmed before you confirm it.
-If you add an API route later: validate on the server, add rate limiting and a captcha.
+The form validates and sends registration requests to both contact email addresses through Resend. The website does not store submissions in a database. WhatsApp is also available after a successful email submission. A request is not a confirmed reservation until you confirm it.
+Because the registration endpoint is public, add rate limiting or CAPTCHA protection if you receive spam.
 
 ## Later: French and Moroccan Arabic
 Move the texts from `lib/site.ts` and the pages into one dictionary per language

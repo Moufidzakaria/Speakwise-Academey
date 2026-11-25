@@ -21,7 +21,9 @@ export default function Footer() {
         <address className="space-y-2 not-italic text-sm text-white/70">
           <p className="mb-4 text-xs font-bold uppercase tracking-[0.16em] text-white/40">Get in touch</p>
           <p>{site.city}</p>
-          <p><a className="transition-colors hover:text-white" href={`mailto:${site.email}`}>{site.email}</a></p>
+          {site.emails.map((email) => (
+            <p key={email}><a className="transition-colors hover:text-white" href={`mailto:${email}`}>{email}</a></p>
+          ))}
           <p><a className="transition-colors hover:text-white" href={site.phoneHref}>{site.phone}</a></p>
         </address>
       </div>
