@@ -1,17 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { packageOptions, site, waLink } from "@/lib/site";
+import { packageOptions, site } from "@/lib/site";
 
 type Errors = Partial<Record<"name" | "email" | "phone" | "consent", string>>;
-type Ready = { wa: string };
 
 const field = "form-field";
 
 export default function RegistrationForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [errors, setErrors] = useState<Errors>({});
-  const [ready, setReady] = useState<Ready | null>(null);
+  const [ready, setReady] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState("");
 
@@ -33,21 +32,9 @@ export default function RegistrationForm() {
     if (!/^\+?[0-9 ]{8,16}$/.test(v("phone"))) next.phone = "Enter a valid phone number (digits, optional +).";
     if (!d.get("consent")) next.consent = "Accept to continue.";
     setErrors(next);
-    setReady(null);
+    setReady(false);
     setSendError("");
     if (Object.keys(next).length) return;
-
-    const pkg = packageOptions.find((o) => o.id === v("package"))?.label ?? v("package");
-    const message = [
-      "Registration inquiry",
-      `Name: ${v("name")}`,
-      `Email: ${v("email")}`,
-      `Phone: ${v("phone")}`,
-      `Package: ${pkg}`,
-      `Training format: ${v("format")}`,
-      `Learners' age group: ${v("age")}`,
-      `Message: ${v("message") || "-"}`,
-    ].join("\n");
 
     setIsSending(true);
     try {
@@ -75,7 +62,7 @@ export default function RegistrationForm() {
         throw new Error(errorMessage);
       }
 
-      setReady({ wa: waLink(message) });
+      setReady(true);
     } catch (error) {
       setSendError(error instanceof Error ? error.message : "The registration email could not be sent. Please try again.");
     } finally {
@@ -155,9 +142,6 @@ export default function RegistrationForm() {
           <div className="rounded-2xl border border-emerald/20 bg-emerald/5 p-5">
             <p className="font-semibold">Your request was sent to both contact email addresses.</p>
             <p className="mt-1 text-navy/75">This is not a confirmed reservation: a place is confirmed only after we contact you.</p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <a href={ready.wa} target="_blank" rel="noopener noreferrer" className="button min-h-11 bg-emerald text-white hover:bg-emerald/90">Send via WhatsApp</a>
-            </div>
           </div>
         )}
       </div>

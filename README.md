@@ -30,7 +30,7 @@ npm run start
 - `tailwind.config.ts`: brand colors.
 
 ## Registration
-The form validates and sends registration requests to both contact email addresses through Resend. The website does not store submissions in a database. WhatsApp is also available after a successful email submission. A request is not a confirmed reservation until you confirm it.
+The form validates and sends registration requests to both contact email addresses through Resend; it does not use WhatsApp. The website does not store submissions in a database. WhatsApp remains available as a separate contact option on the site. A request is not a confirmed reservation until you confirm it.
 Because the registration endpoint is public, add rate limiting or CAPTCHA protection if you receive spam.
 
 ## Later: French and Moroccan Arabic
